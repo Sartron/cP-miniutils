@@ -4,7 +4,7 @@
 # Calculates size of an uncompressed backup based on repquota. Not entirely accurate.
 
 readonly UPDATED='December 24 2017';
-readonly VERSION='1.01';
+readonly VERSION='1.02';
 
 function Main()
 {
@@ -24,17 +24,18 @@ function Main()
 	
 	for user in ${cP_users};
 	do
-		local enabled;
+		# By default, the user is disabled in backups until proven otherwise.
+		local enabled='0';
 		
-		# Check if backups are enabled for the user.
+		# Check if backups are enabled for the user depending on what backup system is enabled.
 		[ "${backup_system}" == 'Legacy' ] && { grep -q '^LEGACY_BACKUP=1' "/var/cpanel/users/${user}" && enabled='1' || enabled='0'; };
 		[ "${backup_system}" == 'Modern' ] && { grep -q '^BACKUP=1' "/var/cpanel/users/${user}" && enabled='1' || enabled='0'; };
 		
-		local user_usage=$(grep "${user}" <<< "${quota_report}" | awk '{print $3}');
+		local user_usage=$(grep -E "^${user}\s" <<< "${quota_report}" | awk '{print $3}');
 		
 		# Output usage and backup status.
 		[ "${enabled}" == '1' ] && echo -n '[Enabled]' || echo -n '[Disabled]';
-		echo " User '${user}' is using: ${user_usage} kB";
+		echo " User '${user}' is using: ${user_usage} kB / $(( user_usage / 1024 )) MB";
 		
 		(( total += ${user_usage} ));
 	done
