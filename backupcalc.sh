@@ -3,11 +3,14 @@
 # cPanel Backup Calculator
 # Calculates size of an uncompressed backup based on repquota. Not entirely accurate.
 
-readonly UPDATED='December 24 2017';
-readonly VERSION='1.02';
+readonly UPDATED='December 29 2017';
+readonly VERSION='1.03';
 
 function Main()
 {
+	# Make sure the root user is being used.
+	[ ${EUID} != '0' ] && { echo 'This script must be used as root.'; return 1; };
+	
 	local quota_report=$(repquota -a);
 	local cP_users=$(find /var/cpanel/users -type f \( ! -user nobody -and ! -group nobody -and ! -group root \) -exec basename '{}' \; | sort);
 	local backup_system;
